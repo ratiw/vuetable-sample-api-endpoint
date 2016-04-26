@@ -33,6 +33,7 @@ return response()->json(
     ->header('Access-Control-Allow-Methods', 'GET');
 });
 
+
 Route::get('/', function() {
     return redirect('https://github.com/ratiw/vue-table');
 });
