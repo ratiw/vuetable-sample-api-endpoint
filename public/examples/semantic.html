@@ -24,6 +24,9 @@
         .vuetable {
             margin-top: 1em !important;
         }
+        .vuetable-wrapper.ui.basic.segment {
+            padding: 0em;
+        }
         .vuetable button.ui.button {
             padding: .5em .5em;
             font-weight: 400;
@@ -136,7 +139,8 @@
                 api-url="/api/users"
                 pagination-path=""
                 :pagination-component="paginationComponent"
-                table-wrapper="#content"
+                wrapper-class="vuetable-wrapper ui basic segment"
+                table-wrapper=".vuetable-wrapper"
                 :fields="fields"
                 :sort-order="sortOrder"
                 :item-actions="itemActions"
