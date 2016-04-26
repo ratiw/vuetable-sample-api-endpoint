@@ -91,7 +91,7 @@
         <h2 class="sub-header">List of Users</h2>
         <hr>
         <div class="row">
-            <div class="col-md-8">
+            <div class="col-md-5">
                 <div class="form-inline form-group">
                     <label>Search:</label>
                     <input v-model="searchFor" class="form-control" @keyup.enter="setFilter">
@@ -99,8 +99,15 @@
                     <button class="btn btn-default" @click="resetFilter">Reset</button>
                 </div>
             </div>
-            <div class="col-md-4">
-                <div class="dropdown pull-right">
+            <div class="col-md-7">
+                <div class="dropdown form-inline pull-right">
+                    <label>Per Page:</label>
+                    <select class="form-control" v-model="perPage">
+                        <option value=10>10</option>
+                        <option value=15>15</option>
+                        <option value=20>20</option>
+                        <option value=25>25</option>
+                    </select>
                     <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                         <i class="glyphicon glyphicon-cog"></i>
                     </button>
@@ -132,6 +139,7 @@
                 pagination-component="vuetable-pagination-bootstrap"
                 :item-actions="itemActions"
                 :append-params="moreParams"
+                :per-page="perPage"
             ></vuetable>
         </div>
 
@@ -230,6 +238,7 @@
                 field: 'name',
                 direction: 'asc'
             },
+            perPage: 10,
             paginationInfoTemplate: 'แสดง {from} ถึง {to} จากทั้งหมด {total} รายการ',
             itemActions: [
                 { name: 'view-item', label: '', icon: 'glyphicon glyphicon-zoom-in', class: 'btn btn-info' },
@@ -237,6 +246,11 @@
                 { name: 'delete-item', label: '', icon: 'glyphicon glyphicon-remove', class: 'btn btn-danger' }
             ],
             moreParams: [],
+        },
+        watch: {
+            'perPage': function(val, oldVal) {
+                this.$broadcast('vuetable:refresh')
+            },
         },
         methods: {
             /**

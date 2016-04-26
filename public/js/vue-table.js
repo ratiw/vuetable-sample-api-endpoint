@@ -266,6 +266,9 @@ Vue.component('vuetable', {
         },
         'perPage': {
             type: Number,
+            coerce: function(val) {
+                return parseInt(val);
+            },
             default: function() {
                 return 10
             }
@@ -347,9 +350,9 @@ Vue.component('vuetable', {
             }
         },
         loadOnStart: {
-            type: String,
+            type: Boolean,
             default: function() {
-                return 'true'
+                return true
             }
         },
     },
@@ -614,7 +617,7 @@ Vue.component('vuetable', {
     },
     created: function() {
         this.normalizeFields()
-        if (this.loadOnStart == 'true') {
+        if (this.loadOnStart) {
             this.loadData()
         }
     }
