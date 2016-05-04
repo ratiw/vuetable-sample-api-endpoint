@@ -205,7 +205,7 @@ Vue.component('vuetable', {
             + '<div class="vuetable-pagination-info {{paginationInfoClass}}"'
                 + ' v-html="paginationInfo">'
             + '</div>'
-            + '<div v-show="tablePagination && tablePagination.total > 0" '
+            + '<div v-show="tablePagination && tablePagination.last_page > 1" '
                 + 'class="vuetable-pagination-component {{paginationComponentClass}}">'
                 + '<component v-ref:pagination :is="paginationComponent"></component>'
             + '</div>'
@@ -268,7 +268,7 @@ Vue.component('vuetable', {
         'perPage': {
             type: Number,
             coerce: function(val) {
-                return parseInt(val);
+                return parseInt(val)
             },
             default: function() {
                 return 10
@@ -418,8 +418,8 @@ Vue.component('vuetable', {
         titleCase: function(str)
         {
             return str.replace(/\w+/g, function(txt){
-                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-            });
+                return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+            })
         },
         loadData: function() {
             var wrapper = document.querySelector(this.tableWrapper)
@@ -440,6 +440,12 @@ Vue.component('vuetable', {
                 .then(function(response) {
                     self.tableData = self.getObjectValue(response.data, self.dataPath, null)
                     self.tablePagination = self.getObjectValue(response.data, self.paginationPath, null)
+                    if (self.tablePagination === null) {
+                        console.warn('vuetable: pagination-path "' + self.paginationPath + '"" not found. '
+                            + 'It looks like the data returned from the sever does not have pagination information.'
+                        )
+                    }
+
                     self.dispatchEvent('load-success', response)
                     self.broadcastEvent('load-success', self.tablePagination)
 
@@ -513,7 +519,7 @@ Vue.component('vuetable', {
             this.sortOrder.field = field.name
             this.sortOrder.sortField = field.sortField
             this.currentPage = 1    // reset page index
-            this.loadData();
+            this.loadData()
         },
         isSortable: function(field) {
             return !(typeof field.sortField == 'undefined')
@@ -574,7 +580,7 @@ Vue.component('vuetable', {
                     if (typeof obj[key] != 'undefined' && obj[key] !== null) {
                         obj = obj[key]
                     } else {
-                        obj = defaultValue;
+                        obj = defaultValue
                         return
                     }
                 })

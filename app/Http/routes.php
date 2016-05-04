@@ -33,6 +33,13 @@ return response()->json(
     ->header('Access-Control-Allow-Methods', 'GET');
 });
 
+Route::get('browserify/bootstrap', function() {
+    return view('welcome');
+});
+
+Route::get('webpack/bootstrap', function() {
+    return view('webpack.bootstrap');
+});
 
 Route::get('/', function() {
     return redirect('https://github.com/ratiw/vue-table');
