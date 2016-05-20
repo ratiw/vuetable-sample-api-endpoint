@@ -12,8 +12,8 @@
     <title>vuetable - Bootstrap</title>
 
     <!-- Bootstrap core CSS -->
-    <link href="/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/css/sweetalert.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
 
     <style>
         /* Move down content because we have a fixed navbar that is 50px tall */
@@ -54,11 +54,56 @@
         .vuetable-pagination-component {
           float: right;
         }
+        .vuetable-pagination-component li a {
+            cursor: pointer;
+        }
         [v-cloak] {
             display: none;
         }
         .highlight {
             background-color: yellow;
+        }
+
+        /* Loading Animation: */
+        .vuetable-wrapper {
+            opacity: 1;
+            position: relative;
+            filter: alpha(opacity=100); /* IE8 and earlier */
+        }
+        .vuetable-wrapper.loading {
+          opacity:0.4;
+           transition: opacity .3s ease-in-out;
+           -moz-transition: opacity .3s ease-in-out;
+           -webkit-transition: opacity .3s ease-in-out;
+        }
+        .vuetable-wrapper.loading:after {
+          position: absolute;
+          content: '';
+          top: 40%;
+          left: 50%;
+          margin: -30px 0 0 -30px;
+          border-radius: 100%;
+          -webkit-animation-fill-mode: both;
+                  animation-fill-mode: both;
+          border: 4px solid #000;
+          height: 60px;
+          width: 60px;
+          background: transparent !important;
+          display: inline-block;
+          -webkit-animation: pulse 1s 0s ease-in-out infinite;
+                  animation: pulse 1s 0s ease-in-out infinite;
+        }
+        @keyframes pulse {
+          0% {
+            -webkit-transform: scale(0.6);
+                    transform: scale(0.6); }
+          50% {
+            -webkit-transform: scale(1);
+                    transform: scale(1);
+                 border-width: 12px; }
+          100% {
+            -webkit-transform: scale(0.6);
+                    transform: scale(0.6); }
         }
     </style>
   </head>
@@ -109,7 +154,6 @@
                     <select class="ui simple dropdown" v-model="paginationComponent">
                         <option value="vuetable-pagination">vuetable-pagination</option>
                         <option value="vuetable-pagination-dropdown">vuetable-pagination-dropdown</option>
-                        <option value="vuetable-pagination-slider">vuetable-pagination-slider</option>
                     </select>
                     <label>Per Page:</label>
                     <select class="form-control" v-model="perPage">
@@ -150,31 +194,15 @@
                 :item-actions="itemActions"
                 :append-params="moreParams"
                 :per-page="perPage"
+                wrapper-class="vuetable-wrapper"
+                table-wrapper=".vuetable-wrapper"
+                loading-class="loading"
             ></vuetable>
         </div>
-<!--
-        <template id="vuetable-pagination-bootstrap-template">
-            <nav>
-                <ul class="pagination">
-                    <li class="{{isOnFirstPage ? disabledClass : ''}}">
-                        <a @click="loadPage('prev')"><i class="glyphicon glyphicon-chevron-left"></i></a>
-                    </li>
-                    <template v-for="n in totalPage">
-                        <li class="{{isCurrentPage(n+1) ? ' active' : ''}}">
-                            <a @click="loadPage(n+1)"> {{ n+1 }}</a>
-                        </li>
-                    </template>
-                    <li class="{{isOnLastPage ? disabledClass : ''}}">
-                        <a @click="loadPage('next')"><i class="glyphicon glyphicon-chevron-right"></i></a>
-                    </li>
-                </ul>
-            </nav>
-        </template>
--->
         <hr>
 
         <footer>
-            <p>&copy; 2015 Company, Inc.</p>
+            <p>&copy; 2016 Company, Inc.</p>
         </footer>
 
     </div> <!-- /container -->
@@ -183,13 +211,13 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="/js/jquery.min.js"></script>
-    <script src="/js/bootstrap.min.js"></script>
-    <script src="/js/moment-with-locales.min.js"></script>
-    <script src="/js/vue.js"></script>
-    <script src="/js/vue-resource.js"></script>
-    <script src="/js/vue-table.js"></script>
-    <script src="/js/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.6/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.12.0/moment-with-locales.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.24/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.7.0/vue-resource.min.js"></script>
+<script src="/js/vue-table.js"></script>
     <script>
     var E_SERVER_ERROR = 'Error communicating with the server'
 
@@ -228,17 +256,6 @@
 
     Vue.config.debug = true
 
-    // create pagination component using bootstrap styling
-    // Vue.component('vuetable-pagination-bootstrap', {
-    //     template: '#vuetable-pagination-bootstrap-template',
-    //     mixins: [paginationMixin],
-    //     methods: {
-    //         loadPage: function(page) {
-    //             this.$dispatch('vuetable-pagination:change-page', page)
-    //         },
-    //     },
-    // })
-
     new Vue({
         el: '#app',
         data: {
@@ -264,35 +281,8 @@
             },
             'paginationComponent': function(val, oldVal) {
                 this.$broadcast('vuetable:load-success', this.$refs.vuetable.tablePagination)
-                console.log(val, oldVal)
-                if (val == 'vuetable-pagination-dropdown') {
-                    this.$broadcast('vuetable-pagination:set-options', {
-                        icons: { prev: 'glyphicon glyphicon-chevron-left', next: 'glyphicon glyphicon-chevron-right' }
-                    })
-                }
-                if (val == 'vuetable-pagination-slider') {
-                    this.$broadcast('vuetable-pagination:set-options', {
-                        icons: { first: '', prev: '', next: '', last: ''},
-                        activeClass: 'active',
-                        linkClass: 'btn btn-default',
-                        pageClass: 'btn btn-default'
-                    })
-                }
+                this.paginationConfig(this.paginationComponent)
             }
-        },
-        ready: function() {
-            this.$broadcast('vuetable-pagination:set-options', {
-                onEachSide: 3,
-                icons: {
-                    first: '',
-                    prev: 'glyphicon glyphicon-chevron-left',
-                    next: 'glyphicon glyphicon-chevron-right',
-                    last: ''
-                },
-                activeClass: 'active',
-                linkClass: 'btn btn-default',
-                pageClass: 'btn btn-default'
-            })
         },
         methods: {
             /**
@@ -347,6 +337,25 @@
                     '<span class="highlight">$1</span>'
                 )
             },
+            paginationConfig: function(componentName) {
+                console.log('paginationConfig: ', componentName)
+                if (componentName == 'vuetable-pagination') {
+                    this.$broadcast('vuetable-pagination:set-options', {
+                        wrapperClass: 'pagination',
+                        icons: { first: '', prev: '', next: '', last: ''},
+                        activeClass: 'active',
+                        linkClass: 'btn btn-default',
+                        pageClass: 'btn btn-default'
+                    })
+                }
+                if (componentName == 'vuetable-pagination-dropdown') {
+                    this.$broadcast('vuetable-pagination:set-options', {
+                        wrapperClass: 'form-inline',
+                        icons: { prev: 'glyphicon glyphicon-chevron-left', next: 'glyphicon glyphicon-chevron-right' },
+                        dropdownClass: 'form-control'
+                    })
+                }
+            }
         },
         events: {
             'vuetable:row-changed': function(data) {

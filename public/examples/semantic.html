@@ -9,8 +9,8 @@
 
     <!-- Site Properties -->
     <title>vuetable - Semantic</title>
-    <link rel="stylesheet" href="/css/semantic.min.css">
-    <link rel="stylesheet" href="/css/sweetalert.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
 
     <style type="text/css">
         .ui.vertical.stripe h3 {
@@ -56,22 +56,6 @@
         .highlight {
             background-color: yellow;
         }
-        .vuetable-pagination-component .ui.circular.icon.button {
-            border-radius: 50%
-            border: none;
-            background: none;
-            min-width: 2.5em;
-        }
-        .vuetable-pagination-component .ui.button:hover:not(.active) {
-            background-color: #cacbcd !important;
-        }
-        .vuetable-pagination-component .ui.circular.icon.button.active {
-            border-radius: 50%
-            padding: 1.2em;
-            color: white;
-            font-size: larger;
-            background-color: #2185d0;
-        }
     </style>
 
 </head>
@@ -115,43 +99,42 @@
         <div class="ui container">
             <div id="content" class="ui basic segment">
             <h3 class="ui header">List of Users</h3>
-            <div class="ui grid">
-                <div class="ui left aligned seven wide column">
-                    <div class="ui labeled icon input">
-                        <div class="ui label">Search:</div>
-                        <input v-model="searchFor" class="ui input" @keyup.enter="setFilter">
-                        <i class="search icon"></i>
+                <div class="ui grid">
+                    <div class="ui left aligned nine wide column">
+                        <div class="ui labeled icon input">
+                            <div class="ui label">Search:</div>
+                            <input v-model="searchFor" class="ui input" @keyup.enter="setFilter">
+                            <i class="search icon"></i>
+                        </div>
+                        <button class="ui button primary" @click="setFilter">Go</button>
+                        <button class="ui button" @click="resetFilter">Reset</button>
                     </div>
-                    <button class="ui button primary" @click="setFilter">Go</button>
-                    <button class="ui button" @click="resetFilter">Reset</button>
-                </div>
-                <div class="ui right aligned nine wide column">
-                    <label>Pagination:</label>
-                    <select class="ui simple dropdown" v-model="paginationComponent">
-                        <option value="vuetable-pagination">vuetable-pagination</option>
-                        <option value="vuetable-pagination-dropdown">vuetable-pagination-dropdown</option>
-                        <option value="vuetable-pagination-slider">vuetable-pagination-slider</option>
-                    </select>
-                    <label>Per Page:</label>
-                    <select class="ui simple dropdown" v-model="perPage">
-                        <option value=10>10</option>
-                        <option value=15>15</option>
-                        <option value=20>20</option>
-                        <option value=25>25</option>
-                    </select>
-                    <div class="ui simple dropdown">
-                        <button class="ui icon button"><i class="ui setting icon"></i></button>
-                        <div v-cloak class="left menu">
-                            <div v-for="field in fields" class="item">
-                                <div class="ui checkbox">
-                                    <input type="checkbox" v-model="field.visible">
-                                    <label>{{ field.title == '' ? field.name.replace('__', '') : field.title | capitalize}}</label>
+                    <div class="ui right aligned seven wide column">
+                        <label>Pagination:</label>
+                        <select class="ui simple dropdown" v-model="paginationComponent">
+                            <option value="vuetable-pagination">vuetable-pagination</option>
+                            <option value="vuetable-pagination-dropdown">vuetable-pagination-dropdown</option>
+                        </select>
+                        <label>Per Page:</label>
+                        <select class="ui simple dropdown" v-model="perPage">
+                            <option value=10>10</option>
+                            <option value=15>15</option>
+                            <option value=20>20</option>
+                            <option value=25>25</option>
+                        </select>
+                        <div class="ui simple dropdown">
+                            <button class="ui icon button"><i class="ui setting icon"></i></button>
+                            <div v-cloak class="left menu">
+                                <div v-for="field in fields" class="item">
+                                    <div class="ui checkbox">
+                                        <input type="checkbox" v-model="field.visible">
+                                        <label>{{ field.title == '' ? field.name.replace('__', '') : field.title | capitalize}}</label>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
             <vuetable v-ref:vuetable
                 api-url="/api/users"
                 pagination-path=""
@@ -168,13 +151,13 @@
     </div>
 
 
-<script src="/js/jquery.min.js"></script>
-<script src="/js/semantic.min.js"></script>
-<script src="/js/moment-with-locales.min.js"></script>
-<script src="/js/vue.js"></script>
-<script src="/js/vue-resource.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.2.2/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.1.8/semantic.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.12.0/moment-with-locales.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.24/vue.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.7.0/vue-resource.min.js"></script>
 <script src="/js/vue-table.js"></script>
-<script src="/js/sweetalert.min.js"></script>
 <script>
     var tableColumns = [
         {
@@ -224,8 +207,8 @@
                 field: 'name',
                 direction: 'asc',
             },
-            perPage: 10,
             paginationComponent: 'vuetable-pagination',
+            perPage: 10,
             paginationInfoTemplate: 'แสดง {from} ถึง {to} จากทั้งหมด {total} รายการ',
             itemActions: [
                 { name: 'view-item', label: '', icon: 'zoom icon', class: 'ui teal button' },
@@ -239,13 +222,6 @@
             },
             'paginationComponent': function(val, oldVal) {
                 this.$broadcast('vuetable:load-success', this.$refs.vuetable.tablePagination)
-            }
-        },
-        ready: function() {
-            if (this.paginationComponent == 'vuetable-pagination') {
-                this.$broadcast('vuetable-pagination:set-options', {
-                    onEachSide: 3
-                })
             }
         },
         methods: {
