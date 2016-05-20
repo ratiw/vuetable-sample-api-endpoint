@@ -1,5 +1,5 @@
 /*
- * vue-table.js v1.0.10
+ * vue-table.js v1.0.12
  * (c) 2016 Rati Wannapanop
  * Released under the MIT License.
  */
@@ -13,6 +13,12 @@ var paginationMixin = {
             type: String,
             default: function() {
                 return 'ui right floated pagination menu'
+            }
+        },
+        'activeClass': {
+            type: String,
+            default: function() {
+                return 'active'
             }
         },
         'disabledClass': {
@@ -37,11 +43,22 @@ var paginationMixin = {
             type: Object,
             default: function() {
                 return {
+                    first: 'angle double left icon',
                     prev: 'left chevron icon',
-                    next: 'right chevron icon'
+                    next: 'right chevron icon',
+                    last: 'angle double right icon'
                 }
             }
-        }
+        },
+        'onEachSide': {
+            type: Number,
+            coerce: function(value) {
+                return parseInt(value)
+            },
+            default: function() {
+                return 2
+            }
+        },
     },
     data: function() {
         return {
@@ -64,6 +81,21 @@ var paginationMixin = {
                 ? false
                 : this.tablePagination.current_page == this.tablePagination.last_page
         },
+        notEnoughPages: function() {
+            return this.totalPage < (this.onEachSide * 2) + 4
+        },
+        windowSize: function() {
+            return this.onEachSide * 2 +1;
+        },
+        windowStart: function() {
+            if (this.tablePagination.current_page <= this.onEachSide) {
+                return 1
+            } else if (this.tablePagination.current_page >= (this.totalPage - this.onEachSide)) {
+                return this.totalPage - this.onEachSide*2
+            }
+
+            return this.tablePagination.current_page - this.onEachSide
+        },
     },
     methods: {
         loadPage: function(page) {
@@ -76,6 +108,11 @@ var paginationMixin = {
     events: {
         'vuetable:load-success': function(tablePagination) {
             this.tablePagination = tablePagination
+        },
+        'vuetable-pagination:set-options': function(options) {
+            for (var n in options) {
+                this.$set(n, options[n])
+            }
         }
     },
 }
@@ -86,22 +123,69 @@ var paginationMixin = {
 Vue.component('vuetable-pagination', {
     template:
         '<div class="{{wrapperClass}}">'
-            + ' <a @click="loadPage(\'prev\')"'
-                + ' class="{{linkClass}} {{isOnFirstPage ? disabledClass : \'\'}}">'
-                    + ' <i :class="icons.prev"></i>'
-            + ' </a>'
-            + ' <template v-for="n in totalPage">'
-                + ' <a @click="loadPage(n+1)"'
-                   + ' class="{{pageClass}} {{isCurrentPage(n+1) ? disabledClass : \'\'}}">'
-                        + ' {{ n+1 }}'
-                + ' </a>'
-            + ' </template>'
-            + ' <a @click="loadPage(\'next\')"'
-                + ' class="{{linkClass}} {{isOnLastPage ? disabledClass : \'\'}}">'
-                + ' <i :class="icons.next"></i>'
-            + ' </a>'
+            + '<a @click="loadPage(1)" '
+                + 'class="btn-nav {{linkClass}} {{isOnFirstPage ? disabledClass : \'\'}}">'
+                    + '<i v-if="icons.first != \'\'" class="{{icons.first}}"></i>'
+                    + '<span v-else>&laquo;</span>'
+            + '</a>'
+            + '<a @click="loadPage(\'prev\')" '
+                + 'class="btn-nav {{linkClass}} {{isOnFirstPage ? disabledClass : \'\'}}">'
+                    + '<i v-if="icons.next != \'\'" class="{{icons.prev}}"></i>'
+                    + '<span v-else>&nbsp;&lsaquo;</span>'
+            + '</a>'
+            + '<template v-if="notEnoughPages">'
+                + '<template v-for="n in totalPage">'
+                    + '<a @click="loadPage(n+1)" '
+                        + 'class="{{pageClass}} {{isCurrentPage(n+1) ? activeClass : \'\'}}">'
+                            + '{{ n+1 }}'
+                    + '</a>'
+                + '</template>'
+            + '</template>'
+            + '<template v-else>'
+               + '<template v-for="n in windowSize">'
+                    + '<a @click="loadPage(windowStart+n)" '
+                    + 'class="{{pageClass}} {{isCurrentPage(windowStart+n) ? activeClass : \'\'}}">'
+                        + '{{ windowStart+n }}'
+                    + '</a>'
+               + '</template>'
+            + '</template>'
+            + '<a @click="loadPage(\'next\')" '
+                + 'class="btn-nav {{linkClass}} {{isOnLastPage ? disabledClass : \'\'}}">'
+                + '<i v-if="icons.next != \'\'" class="{{icons.next}}"></i>'
+                + '<span v-else>&rsaquo;&nbsp;</span>'
+            + '</a>'
+            + '<a @click="loadPage(totalPage)" '
+                + 'class="btn-nav {{linkClass}} {{isOnLastPage ? disabledClass : \'\'}}">'
+                + '<i v-if="icons.last != \'\'" class="{{icons.last}}"></i>'
+                + '<span v-else>&raquo;</span>'
+            + '</a>'
         + ' </div>',
     mixins: [paginationMixin],
+})
+
+Vue.component('vuetable-pagination-bootstrap', {
+    template:
+        '<nav>'
+            + '<ul class="pagination">'
+                + '<li class="{{isOnFirstPage ? disabledClass : \'\'}}">'
+                    + '<a @click="loadPage(\'prev\')"><i class="glyphicon glyphicon-chevron-left"></i></a>'
+                + '</li>'
+                + '<template v-for="n in totalPage">'
+                    + '<li class="{{isCurrentPage(n+1) ? \' active\' : \'\'}}">'
+                        + '<a @click="loadPage(n+1)"> {{ n+1 }}</a>'
+                    + '</li>'
+                + '</template>'
+                + '<li class="{{isOnLastPage ? disabledClass : \'\'}}">'
+                    + '<a @click="loadPage(\'next\')"><i class="glyphicon glyphicon-chevron-right"></i></a>'
+                + '</li>'
+            + '</ul>'
+        + '</nav>',
+    mixins: [paginationMixin],
+    methods: {
+        loadPage: function(page) {
+            this.$dispatch('vuetable-pagination:change-page', page)
+        },
+    },
 })
 
 Vue.component('vuetable-pagination-dropdown', {
@@ -111,10 +195,10 @@ Vue.component('vuetable-pagination-dropdown', {
                 + ' class="{{linkClass}} {{isOnFirstPage ? disabledClass : \'\'}}">'
                 + '<i :class="icons.prev"></i>'
             + '</a>'
-            + '<select id="vuetable-pagination-dropdown" class="ui search dropdown" @change="selectPage($event)">'
+            + '<select id="vuetable-pagination-dropdown" class="{{dropdownClass}}" @change="selectPage($event)">'
                 + '<template v-for="n in totalPage">'
                     + '<option class="{{pageClass}}" value="{{n+1}}">'
-                        + 'Page {{n+1}}'
+                        + '{{pageText}} {{n+1}}'
                     + '</option>'
                 + '</template>'
             + '</select>'
@@ -124,6 +208,20 @@ Vue.component('vuetable-pagination-dropdown', {
             + '</a>'
         + '</div>',
     mixins: [paginationMixin],
+    props: {
+        'dropdownClass': {
+            type: String,
+            default: function() {
+                return 'ui search dropdown'
+            }
+        },
+        'pageText': {
+            type: String,
+            default: function() {
+                return 'Page'
+            }
+        }
+    },
     methods: {
         loadPage: function(page) {
             // update dropdown value
@@ -152,6 +250,99 @@ Vue.component('vuetable-pagination-dropdown', {
     },
 })
 
+Vue.component('vuetable-pagination-slider', {
+    template:
+        '<div class="vuetable-pagination-slider {{wrapperClass}}">'
+            + '<a @click="loadPage(1)" '
+                + 'class="btn-nav {{linkClass}} {{isOnFirstPage ? disabledClass : \'\'}}">'
+                    + '<i v-if="icons.first != \'\'" class="{{icons.first}}"></i>'
+                    + '<span v-else>&laquo;</span>'
+            + '</a>'
+            + '<a @click="loadPage(\'prev\')" '
+                + 'class="btn-nav {{linkClass}} {{isOnFirstPage ? disabledClass : \'\'}}">'
+                    + '<i v-if="icons.next != \'\'" class="{{icons.prev}}"></i>'
+                    + '<span v-else>&nbsp;&lsaquo;</span>'
+            + '</a>'
+            + '<template v-if="notEnoughPages">'
+                + '<template v-for="n in totalPage">'
+                    + '<a @click="loadPage(n+1)" '
+                        + 'class="{{pageClass}} {{isCurrentPage(n+1) ? activeClass : \'\'}}">'
+                            + '{{ n+1 }}'
+                    + '</a>'
+                + '</template>'
+            + '</template>'
+            + '<template v-else>'
+               + '<template v-for="n in windowSize">'
+                   + '<a @click="loadPage(windowStart+n)"  '
+                        + 'class="{{pageClass}} {{isCurrentPage(windowStart+n) ? activeClass : \'\'}}">'
+                        + '{{ windowStart+n }}'
+                   + '</a>'
+               + '</template>'
+            + '</template>'
+            + '<a @click="loadPage(\'next\')" '
+                + 'class="btn-nav {{linkClass}} {{isOnLastPage ? disabledClass : \'\'}}">'
+                + '<i v-if="icons.next != \'\'" class="{{icons.next}}"></i>'
+                + '<span v-else>&rsaquo;&nbsp;</span>'
+            + '</a>'
+            + '<a @click="loadPage(totalPage)" '
+                + 'class="btn-nav {{linkClass}} {{isOnLastPage ? disabledClass : \'\'}}">'
+                + '<i v-if="icons.last != \'\'" class="{{icons.last}}"></i>'
+                + '<span v-else>&raquo;</span>'
+            + '</a>'
+        + '</div>',
+    mixins: [paginationMixin],
+    props: {
+        'activeClass': {
+            type: String,
+            default: function() {
+                return 'active large'
+            }
+        },
+        'icons': {
+            type: Object,
+            default: function() {
+                return {
+                    first: 'angle double left icon',
+                    prev: 'left chevron icon',
+                    next: 'right chevron icon',
+                    last: 'angle double right icon',
+                }
+            }
+        },
+        'onEachSide': {
+            type: Number,
+            coerce: function(value) {
+                return parseInt(value)
+            },
+            default: function() {
+                return 2
+            }
+        },
+    },
+    computed: {
+        notEnoughPages: function() {
+            return this.totalPage < (this.onEachSide * 2) + 4
+        },
+        windowSize: function() {
+            return this.onEachSide * 2 +1;
+        },
+        windowStart: function() {
+            if (this.tablePagination.current_page <= this.onEachSide) {
+                return 1
+            } else if (this.tablePagination.current_page >= (this.totalPage - this.onEachSide)) {
+                return this.totalPage - this.onEachSide*2
+            }
+
+            return this.tablePagination.current_page - this.onEachSide
+        },
+    },
+    ready: function() {
+        this.wrapperClass = ''
+        this.pageClass = 'ui circular icon button'
+        this.linkClass = 'ui circular icon button'
+    },
+})
+
 Vue.component('vuetable', {
     template:
         '<div class="{{wrapperClass}}">'
@@ -160,16 +351,22 @@ Vue.component('vuetable', {
                 + '<tr>'
                     + '<template v-for="field in fields">'
                         + '<template v-if="field.visible">'
-                            + '<th v-if="isSpecialField(field.name)" id="{{field.name}}" class="{{field.titleClass || \'\'}}">'
-                                + '{{field.title || \'\'}}'
-                            + '</th>'
-                            + '<th v-else'
-                                + ' @click="orderBy(field)"'
-                                + ' id="_{{field.name}}"'
-                                + ' class="{{field.titleClass || \'\'}} {{isSortable(field) ? \'sortable\' : \'\'}}">'
-                                + ' {{getTitle(field) | capitalize}} '
-                                + '<i v-if="isCurrentSortField(field)" class="{{ sortIcon }}"></i>'
-                            + '</th>'
+                            + '<template v-if="isSpecialField(field.name)">'
+                                + '<th v-if="extractName(field.name) == \'__checkbox\'" class="{{field.titleClass || \'\'}}">'
+                                    + '<input type="checkbox" @change="toggleAllCheckboxes($event.target.checked, field.name)">'
+                                + '</th>'
+                                + '<th v-else id="{{field.name}}" class="{{field.titleClass || \'\'}}">'
+                                    + '{{field.title || \'\'}}'
+                                + '</th>'
+                            + '</template>'
+                            + '<template v-else>'
+                                + '<th @click="orderBy(field)"'
+                                    + 'id="_{{field.name}}"'
+                                    + 'class="{{field.titleClass || \'\'}} {{isSortable(field) ? \'sortable\' : \'\'}}">'
+                                    + '{{getTitle(field) | capitalize}}'
+                                    + '<i v-if="isCurrentSortField(field)" class="{{ sortIcon }}"></i>'
+                                + '</th>'
+                            + '</template>'
                         + '</template>'
                     + '</template>'
                 + '</tr>'
@@ -180,9 +377,17 @@ Vue.component('vuetable', {
                     + '<template v-for="field in fields">'
                         + '<template v-if="field.visible">'
                             + '<template v-if="isSpecialField(field.name)">'
+                                + '<td v-if="extractName(field.name) == \'__sequence\'" class="vuetable-sequence {{field.dataClass}}"'
+                                    + 'v-html="tablePagination.from + itemNumber">'
+                                + '</td>'
+                                + '<td v-if="extractName(field.name) == \'__checkbox\'" class="vuetable-checkboxes {{field.dataClass}}">'
+                                    + '<input type="checkbox"'
+                                        + '@change="toggleCheckbox($event.target.checked, item, field.name)"'
+                                        + ':checked="isSelectedRow(item, field.name)">'
+                                + '</td>'
                                 + '<td v-if="field.name == \'__actions\'" class="vuetable-actions {{field.dataClass}}">'
                                     + '<template v-for="action in itemActions">'
-                                        + '<button class="{{ action.class }}" @click="callAction(action.name, item)">'
+                                        + '<button class="{{ action.class }}" @click="callAction(action.name, item)" v-attr="action.extra">'
                                             + '<i class="{{ action.icon }}"></i> {{ action.label }}'
                                         + '</button>'
                                     + '</template>'
@@ -325,13 +530,13 @@ Vue.component('vuetable', {
         'paginationInfoClass': {
             type: String,
             default: function() {
-                return 'left floated left aligned six wide column'
+                return 'left floated left aligned four wide column'
             }
         },
         'paginationComponentClass': {
             type: String,
             default: function() {
-                return 'right floated right aligned six wide column'
+                return 'right floated right aligned eight wide column'
             }
         },
         itemActions: {
@@ -356,6 +561,12 @@ Vue.component('vuetable', {
                 return true
             }
         },
+        selectedTo: {
+            type: Array,
+            default: function() {
+                return []
+            }
+        }
     },
     data: function() {
         return {
@@ -364,6 +575,15 @@ Vue.component('vuetable', {
             tablePagination: null,
             currentPage: 1
         }
+    },
+    directives: {
+        'attr': {
+            update: function(value) {
+                for (var i in value) {
+                    this.el.setAttribute(i, value[i])
+                }
+            }
+        },
     },
     computed: {
         sortIcon: function() {
@@ -593,8 +813,45 @@ Vue.component('vuetable', {
         addParam: function(param) {
             this.appendParams.push(param)
         },
+        toggleCheckbox: function(isChecked, dataItem, fieldName) {
+            var idColumn = this.extractArgs(fieldName)
+            if (idColumn === undefined) {
+                console.warn('You did not provide reference id column with "__checkbox:<column_name>" field!')
+                return
+            }
+            if (isChecked) {
+                this.selectedTo.push(dataItem[idColumn])
+            } else {
+                this.selectedTo.$remove(dataItem[idColumn])
+            }
+        },
+        toggleAllCheckboxes: function(isChecked, fieldName) {
+            var self = this
+            var idColumn = this.extractArgs(fieldName)
+
+            if (isChecked) {
+                this.tableData.forEach(function(dataItem) {
+                    if ( ! self.isSelectedRow(dataItem, fieldName)) {
+                        self.selectedTo.push(dataItem[idColumn])
+                    }
+                })
+            } else {
+                this.tableData.forEach(function(dataItem) {
+                    self.selectedTo.$remove(dataItem[idColumn])
+                })
+            }
+        },
+        isSelectedRow: function(dataItem, fieldName) {
+            return this.selectedTo.indexOf(dataItem[this.extractArgs(fieldName)]) >= 0
+        },
+        extractName: function(string) {
+            return string.split(':')[0].trim()
+        },
+        extractArgs: function(string) {
+            return string.split(':')[1]
+        },
         onRowChanged: function(dataItem) {
-            this.$dispatch(this.eventPrefix+'row-changed', dataItem)
+            this.dispatchEvent('row-changed', dataItem)
             return true
         },
         onRowClicked: function(dataItem, event) {
@@ -621,6 +878,11 @@ Vue.component('vuetable', {
         },
         'vuetable:goto-page': function(page) {
             this.$emit('vuetable-pagination:change-page', page)
+        },
+        'vuetable:set-options': function(options) {
+            for (var n in options) {
+                this.$set(n, options[n])
+            }
         },
     },
     created: function() {

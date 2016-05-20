@@ -41,6 +41,11 @@ Route::get('webpack/bootstrap', function() {
     return view('webpack.bootstrap');
 });
 
+Route::get('play', function() {
+    $users = App\User::paginate();
+    return view('play', compact('users'));
+});
+
 Route::get('/', function() {
     return redirect('https://github.com/ratiw/vue-table');
 });
