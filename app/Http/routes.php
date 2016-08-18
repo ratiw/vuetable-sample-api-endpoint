@@ -28,7 +28,7 @@ Route::get('/api/users', function() {
 
     $perPage = request()->has('per_page') ? (int) request()->per_page : null;
 
-    $pagination = $query->paginate($perPage);
+    $pagination = $query->with('address')->paginate($perPage);
     $pagination->appends([
         'sort' => request()->sort,
         'filter' => request()->filter,
