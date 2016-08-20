@@ -20,6 +20,7 @@
         body {
           padding-top: 50px;
           padding-bottom: 20px;
+          overflow-y: scroll;
         }
         ul.dropdown-menu li {
             margin-left: 20px;
@@ -62,6 +63,19 @@
         }
         .highlight {
             background-color: yellow;
+        }
+        .vuetable-detail-row {
+            height: 200px;
+        }
+        .detail-row {
+            margin-left: 40px;
+        }
+        .expand-transition {
+            transition: all .5s ease;
+        }
+        .expand-enter, .expand-leave {
+            height: 0;
+            opacity: 0;
         }
 
         /* Loading Animation: */
@@ -140,7 +154,7 @@
         <h2 class="sub-header">List of Users</h2>
         <hr>
         <div class="row">
-            <div class="col-md-5">
+            <div class="col-md-7 form-inline">
                 <div class="form-inline form-group">
                     <label>Search:</label>
                     <input v-model="searchFor" class="form-control" @keyup.enter="setFilter">
@@ -148,42 +162,76 @@
                     <button class="btn btn-default" @click="resetFilter">Reset</button>
                 </div>
             </div>
-            <div class="col-md-7">
-                <div class="dropdown form-inline pull-right">
-                    <label>Pagination:</label>
-                    <select class="ui simple dropdown" v-model="paginationComponent">
-                        <option value="vuetable-pagination">vuetable-pagination</option>
-                        <option value="vuetable-pagination-dropdown">vuetable-pagination-dropdown</option>
-                    </select>
-                    <label>Per Page:</label>
-                    <select class="form-control" v-model="perPage">
-                        <option value=10>10</option>
-                        <option value=15>15</option>
-                        <option value=20>20</option>
-                        <option value=25>25</option>
-                    </select>
-                    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                        <i class="glyphicon glyphicon-cog"></i>
+            <div class="col-md-5">
+                <div class="form-inline form-group pull-right">
+                    <button class="btn btn-default" data-toggle="modal" data-target="#settingsModal">
+                        <span class="glyphicon glyphicon-cog"></span> Settings
                     </button>
-                    <ul class="dropdown-menu">
-                        <li v-for="field in fields">
-                            <span class="checkbox">
+                </div>
+            </div>
+        </div>
+        <div class="modal fade" id="settingsModal" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                        <h4 class="modal-title">Settings</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <div class="checkbox">
                                 <label>
-                                    <input type="checkbox" v-model="field.visible">
-                                    {{ field.title == '' ? field.name.replace('__', '') : field.title | capitalize }}
+                                    <input type="checkbox" v-model="multiSort"> Multisort (use Alt+Click)
                                 </label>
-                            </span>
-                        </li>
-                    </ul>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Pagination:</label>
+                            <select class="form-control" v-model="paginationComponent">
+                                <option value="vuetable-pagination">vuetable-pagination</option>
+                                <option value="vuetable-pagination-dropdown">vuetable-pagination-dropdown</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Per Page:</label>
+                            <select class="form-control" v-model="perPage">
+                                <option value=10>10</option>
+                                <option value=15>15</option>
+                                <option value=20>20</option>
+                                <option value=25>25</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <div class="panel panel-default">
+                                <div class="panel-heading">
+                                    <h4 class="panel-title">Visible fields</h4>
+                                </div>
+                                <div class="panel-body">
+                                    <div class="checkbox" v-for="field in fields">
+                                        <label>
+                                            <input type="checkbox" v-model="field.visible">
+                                            {{ field.title == '' ? field.name.replace('__', '') : field.title | capitalize }}
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="table-responsive">
             <vuetable v-ref:vuetable
-                api-url="/api/users"
+                api-url="http://vuetable.ratiw.net/api/users"
                 pagination-path=""
                 :fields="fields"
                 :sort-order="sortOrder"
+                :multi-sort="multiSort"
                 table-class="table table-bordered table-striped table-hover"
                 ascending-icon="glyphicon glyphicon-chevron-up"
                 descending-icon="glyphicon glyphicon-chevron-down"
@@ -197,6 +245,10 @@
                 wrapper-class="vuetable-wrapper"
                 table-wrapper=".vuetable-wrapper"
                 loading-class="loading"
+                detail-row-callback="makeDetailRow"
+                detail-row-id="id"
+                detail-row-transition="expand"
+                row-class-callback="rowClassCB"
             ></vuetable>
         </div>
         <hr>
@@ -217,12 +269,18 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.24/vue.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.7.0/vue-resource.min.js"></script>
-<script src="/js/vue-table.js"></script>
+<script src="https://npmcdn.com/vuetable"></script>
     <script>
     var E_SERVER_ERROR = 'Error communicating with the server'
 
     // fields definition
     var tableColumns = [
+        {
+            name: 'id',
+            title: '',
+            dataClass: 'text-center',
+            callback: 'showDetailRow'
+        },
         {
             name: 'name',
             sortField: 'name',
@@ -261,10 +319,11 @@
         data: {
             searchFor: '',
             fields: tableColumns,
-            sortOrder: {
+            sortOrder: [{
                 field: 'name',
                 direction: 'asc'
-            },
+            }],
+            multiSort: true,
             perPage: 10,
             paginationComponent: 'vuetable-pagination',
             paginationInfoTemplate: 'แสดง {from} ถึง {to} จากทั้งหมด {total} รายการ',
@@ -300,6 +359,14 @@
                 if (value == null) return ''
                 fmt = (typeof fmt == 'undefined') ? 'D MMM YYYY' : fmt
                 return moment(value, 'YYYY-MM-DD').format(fmt)
+            },
+            showDetailRow: function(value) {
+                var icon = this.$refs.vuetable.isVisibleDetailRow(value) ? 'glyphicon glyphicon-minus-sign' : 'glyphicon glyphicon-plus-sign'
+                return [
+                    '<a class="show-detail-row">',
+                        '<i class="' + icon + '"></i>',
+                    '</a>'
+                ].join('')
             },
             /**
              * Other functions
@@ -337,6 +404,37 @@
                     '<span class="highlight">$1</span>'
                 )
             },
+            makeDetailRow: function(data) {
+                return [
+                    '<td colspan="7">',
+                        '<div class="detail-row">',
+                            '<div class="form-group">',
+                                '<label>Name: </label>',
+                                '<span>' + data.name + '</span>',
+                            '</div>',
+                            '<div class="form-group">',
+                                '<label>Email: </label>',
+                                '<span>' + data.email + '</span>',
+                            '</div>',
+                            '<div class="form-group">',
+                                '<label>Nickname: </label>',
+                                '<span>' + data.nickname + '</span>',
+                            '</div>',
+                            '<div class="form-group">',
+                                '<label>Birthdate: </label>',
+                                '<span>' + data.birthdate + '</span>',
+                            '</div>',
+                            '<div class="form-group">',
+                                '<label>Gender: </label>',
+                                '<span>' + data.gender + '</span>',
+                            '</div>',
+                        '</div>',
+                    '</td>'
+                ].join('')
+            },
+            rowClassCB: function(data, index) {
+                return (index % 2) === 0 ? 'positive' : ''
+            },
             paginationConfig: function(componentName) {
                 console.log('paginationConfig: ', componentName)
                 if (componentName == 'vuetable-pagination') {
@@ -355,16 +453,29 @@
                         dropdownClass: 'form-control'
                     })
                 }
-            }
+            },
+            // -------------------------------------------------------------------------------------------
+            // You can change how sort params string is constructed by overriding getSortParam() like this
+            // -------------------------------------------------------------------------------------------
+            // getSortParam: function(sortOrder) {
+            //     console.log('parent getSortParam:', JSON.stringify(sortOrder))
+            //     return sortOrder.map(function(sort) {
+            //         return (sort.direction === 'desc' ? '+' : '') + sort.field
+            //     }).join(',')
+            // }
         },
         events: {
             'vuetable:row-changed': function(data) {
                 console.log('row-changed:', data.name)
             },
             'vuetable:row-clicked': function(data, event) {
-                console.log('clicked:', data.name)
-                data.name = '! '+data.name
-                data.nickname = '<i>'+data.nickname+'</i>'
+                console.log('row-clicked:', data.name)
+            },
+            'vuetable:cell-clicked': function(data, field, event) {
+                console.log('cell-clicked:', field.name)
+                if (field.name !== '__actions') {
+                    this.$broadcast('vuetable:toggle-detail', data.id)
+                }
             },
             'vuetable:action': function(action, data) {
                 console.log('vuetable:action', action, data)
