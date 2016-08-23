@@ -1,4 +1,11 @@
 <?php
+Route::get('/api/addresses', function() {
+    $request = request();
+
+    $query = app(App\Address::class)->newQuery();
+
+    return $query->paginate();
+});
 
 Route::get('/api/users', function() {
     $request = request();
