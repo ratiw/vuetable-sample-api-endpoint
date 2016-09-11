@@ -24,8 +24,8 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
-    public function group()
+    public function address()
     {
-        return $this->belongsTo(Group::class);
+        return $this->hasOne(Address::class);
     }
 }

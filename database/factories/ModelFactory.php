@@ -23,3 +23,13 @@ $factory->define(App\User::class, function (Faker\Generator $faker) {
         'group_id' => $faker->randomElement([1, 2, 3, 4, 5])
     ];
 });
+
+$factory->define(App\Address::class, function (Faker\Generator $faker) {
+    return [
+        'line1' => $faker->address,
+        'line2' => $faker->country,
+        'zipcode' => $faker->postcode,
+        'mobile' => $faker->phoneNumber,
+        'fax' =>  $faker->phoneNumber
+    ];
+});
