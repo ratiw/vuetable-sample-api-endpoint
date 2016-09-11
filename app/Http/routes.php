@@ -3,7 +3,7 @@
 Route::get('/api/users', function() {
     $request = request();
 
-    $query = app(App\User::class)->newQuery();
+    $query = app(App\User::class)->newQuery()->with('group');
 
     // handle sort option
     if (request()->has('sort')) {
