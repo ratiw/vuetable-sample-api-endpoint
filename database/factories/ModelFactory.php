@@ -20,6 +20,7 @@ $factory->define(App\User::class, function (Faker\Generator $faker) {
         'remember_token' => str_random(10),
         'birthdate' => $faker->dateTimeBetween('-30 years', 'now'),
         'gender' => $faker->randomElement(['M', 'F']),
+        'salary' => $faker->numberBetween(9000, 50000),
         'group_id' => $faker->randomElement([1, 2, 3, 4, 5])
     ];
 });
