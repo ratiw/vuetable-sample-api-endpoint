@@ -2,6 +2,7 @@
 
 namespace App;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
@@ -24,6 +25,14 @@ class User extends Authenticatable
         'password', 'remember_token',
     ];
 
+    protected $dates = [
+        'birthdate'
+    ];
+
+    protected $appends = [
+        'age'
+    ];
+
     public function group()
     {
         return $this->belongsTo(Group::class);
@@ -32,5 +41,10 @@ class User extends Authenticatable
     public function address()
     {
         return $this->hasOne(Address::class);
+    }
+
+    public function getAgeAttribute($value)
+    {
+        return Carbon::parse($this->attributes['birthdate'])->diffInYears(Carbon::now());
     }
 }

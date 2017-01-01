@@ -18,7 +18,7 @@ $factory->define(App\User::class, function (Faker\Generator $faker) {
         'email' => $faker->safeEmail,
         'password' => bcrypt(str_random(10)),
         'remember_token' => str_random(10),
-        'birthdate' => $faker->dateTimeBetween('-30 years', 'now'),
+        'birthdate' => $faker->dateTimeBetween('-55 years', '-20 years'),
         'gender' => $faker->randomElement(['M', 'F']),
         'salary' => $faker->numberBetween(9000, 50000),
         'group_id' => $faker->randomElement([1, 2, 3, 4, 5])
